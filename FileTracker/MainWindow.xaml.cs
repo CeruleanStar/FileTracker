@@ -25,19 +25,20 @@ namespace FileTracker
         public MainWindow()
         {
             InitializeComponent();
+            labelWelcome.Content = "Welcome, " + Environment.UserName + "!";
+            DebugLog("[" + DateTime.Now + "] [" + Environment.UserName + "] has opened FileTracker");
         }
 
         private void Submit_Click(object sender, RoutedEventArgs e)
         {
             if (Directory.Exists(TrackDirectory.Text.ToString()))
             {
-                EditLastChange("[" + DateTime.Now + "] Directory Changed to: " + TrackDirectory.Text.ToString());
+                EditLastChange("Directory Changed to: " + TrackDirectory.Text.ToString());
                 FileTrackWatcher(TrackDirectory.Text.ToString());
             }
             else
             {
-                TrackDirectory.Text = "Invalid Directory: " + TrackDirectory.Text.ToString();
-                LatestChange.Text = "Invalid Directory: " + TrackDirectory.Text.ToString();
+                EditLastChange("Invalid Directory: " + TrackDirectory.Text.ToString());
             }
         }
 
@@ -63,16 +64,43 @@ namespace FileTracker
 
         private void Renamed(object source, FileSystemEventArgs e)
         {
-            EditLastChange("[" + DateTime.Now + "] File: [" + e.Name + "] has been [renamed]");
+            EditLastChange("File: [" + e.Name + "] has been [renamed]");
         }
         // make last change
         public void EditLastChange(string text)
         {
+            text = "[" + DateTime.Now + "] " + text;
             Dispatcher.BeginInvoke(new Action(() =>
             {
                 this.LatestChange.Text = text;
                 this.listboxChangeLog.Items.Add(text);
+                this.DebugLog(text);
+                NotifyIcon ico = new NotifyIcon();
+                ico.ShowBalloonTip(3000, text, "Click to see log", ToolTipIcon.Info);
             }));
+        }
+
+        public void DebugLog(string text)
+        {
+            string LogPath = "C:\\Users\\" + Environment.UserName + "\\FileTracker.txt";
+            TextWriter Logger = new StreamWriter(LogPath, true);
+            try
+            {
+                if (File.Exists(LogPath))
+                {
+                    Logger.WriteLine(text);
+                }
+                else
+                {
+                    File.Create(LogPath);
+                    Logger.WriteLine(text);
+                }
+            }
+            catch (Exception)
+            {
+                // silent failure
+            }
+            Logger.Close();
         }
     }
 }
