@@ -22,6 +22,9 @@ namespace FileTracker
     /// </summary>
     public partial class MainWindow : Window
     {
+        // store user who changed file
+        public string changeuser;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -47,9 +50,10 @@ namespace FileTracker
             // start the file system watcher
             var fs = new FileSystemWatcher(Dir, "*.*");
             // Set Notification Filters
-            fs.NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName;
+            fs.NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.FileName | NotifyFilters.DirectoryName | NotifyFilters.Size | NotifyFilters.DirectoryName | NotifyFilters.Attributes;
             // enable events
             fs.EnableRaisingEvents = true;
+            fs.IncludeSubdirectories = true;
             // Now event handlers
             fs.Created += new FileSystemEventHandler(Changes);
             fs.Changed += new FileSystemEventHandler(Changes);
@@ -60,6 +64,7 @@ namespace FileTracker
         private void Changes(object source, FileSystemEventArgs e)
         {
             EditLastChange("File: [" + e.Name + "] has been: [" + e.ChangeType + "]");
+
         }
 
         private void Renamed(object source, FileSystemEventArgs e)
