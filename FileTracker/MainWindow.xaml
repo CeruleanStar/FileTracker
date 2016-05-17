@@ -6,12 +6,12 @@
         xmlns:local="clr-namespace:FileTracker"
         mc:Ignorable="d"
         Title="File Tracker" Height="350" Width="555">
-    <Grid>
-        <Label x:Name="labelWelcome" Content="Welcome to File Tracker" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0" Width="334"/>
-        <TextBox x:Name="TrackDirectory" HorizontalAlignment="Left" Height="26" Margin="10,41,0,0" TextWrapping="Wrap" Text="Folder to Track" VerticalAlignment="Top" Width="334"/>
+    <Grid Background="black">
+        <Label Foreground="#00ff00" x:Name="labelWelcome" Content="Welcome to File Tracker" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0" Width="334"/>
+        <TextBox x:Name="TrackDirectory" Background="black" Foreground="#00ff00" HorizontalAlignment="Left" Height="26" Margin="10,41,0,0" TextWrapping="Wrap" Text="Folder to Track" VerticalAlignment="Top" Width="334"/>
         <Button x:Name="Submit" Content="Track Folder" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Margin="349,41,0,0" Height="26" Click="Submit_Click"/>
-        <TextBlock x:Name="LatestChange" HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Top" RenderTransformOrigin="0.888,4.632" Margin="10,72,0,0" Height="21" Width="527"><Run Text="Lat"/><Run Text="est Actio"/><Run Text="n"/></TextBlock>
-        <ListBox x:Name="listboxChangeLog" HorizontalAlignment="Stretch"  Margin="10,98,10,10" VerticalAlignment="Stretch"/>
+        <TextBlock x:Name="LatestChange" Background="black" Foreground="#00ff00" HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Top" RenderTransformOrigin="0.888,4.632" Margin="10,72,0,0" Height="21" Width="527"><Run Text="Lat"/><Run Text="est Actio"/><Run Text="n"/></TextBlock>
+        <ListBox x:Name="listboxChangeLog" Background="black" Foreground="#00ff00" HorizontalAlignment="Stretch"  Margin="10,98,10,10" VerticalAlignment="Stretch"/>
 
     </Grid>
 </Window>
