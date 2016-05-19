@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace FileTracker.Properties
+namespace WindowsFormsApplication1.Properties
 {
 
 
