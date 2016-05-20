@@ -89,7 +89,7 @@
             this.notifyIcon1.Icon = ((System.Drawing.Icon)(resources.GetObject("notifyIcon1.Icon")));
             this.notifyIcon1.Text = "FileWatcher";
             this.notifyIcon1.Visible = true;
-            this.notifyIcon1.BalloonTipClicked += new System.EventHandler(this.notifyIcon1_BalloonTipClicked);           
+            this.notifyIcon1.BalloonTipClicked += new System.EventHandler(this.notifyIcon1_BalloonTipClicked);
             // 
             // label5
             // 
@@ -188,6 +188,7 @@
             // 
             // pictureBox1
             // 
+            this.pictureBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.pictureBox1.Image = global::WindowsFormsApplication1.Properties.Resources.logo;
             this.pictureBox1.Location = new System.Drawing.Point(121, 338);
             this.pictureBox1.Name = "pictureBox1";

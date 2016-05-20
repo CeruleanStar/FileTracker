@@ -53,7 +53,10 @@ namespace WindowsFormsApplication1
             this.FormBorderStyle = FormBorderStyle.None;
 
             Rectangle workingArea = Screen.GetWorkingArea(this);
+            
+            this.Height = workingArea.Height * 3 / 4;
             this.Location = new System.Drawing.Point(workingArea.Right - Size.Width, workingArea.Bottom - Size.Height);
+           
         }
 
 
@@ -105,6 +108,8 @@ namespace WindowsFormsApplication1
                 notifyIcon1.BalloonTipTitle = " !!!!!!!!!! ALERT !!!!!!!!!! ";
                 notifyIcon1.BalloonTipText = "\r A New File Was Created In \r \r " + dirNamein;
                 notifyIcon1.ShowBalloonTip(1000);
+
+    
             }
 
             //this is where you add label text to keep it up to date on file creation
