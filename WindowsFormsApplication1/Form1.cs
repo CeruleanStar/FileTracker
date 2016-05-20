@@ -35,7 +35,7 @@ namespace WindowsFormsApplication1
             InitializeComponent();
 
             notifyIcon1.BalloonTipText = "File Watcher Started";
-            notifyIcon1.ShowBalloonTip(1000);
+            notifyIcon1.ShowBalloonTip(100);
 
             watch1();
             watch2();
