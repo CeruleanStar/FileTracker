@@ -24,9 +24,9 @@ namespace WindowsFormsApplication1
         public const string dirPath3 = "\\\\fs3\\it\\other";
         public const string dirName3 = "IT\\other";
 
-        public bool isbox1checked = false;
-        public bool isbox2checked = false;
-        public bool isbox3checked = false;
+        public bool isbox1checked = true;
+        public bool isbox2checked = true;
+        public bool isbox3checked = true;
 
         public string ballonDir = dirPath1;
 
@@ -42,12 +42,13 @@ namespace WindowsFormsApplication1
             watch3();
             
             
-            
-            // type a comment real quick there
+        
             this.label2.Text = fileCount1(dirPath1).ToString();
             this.label2.ForeColor = setColor(dirPath1);
             this.label7.Text = fileCount1(dirPath2).ToString();
             this.label7.ForeColor = setColor(dirPath2);
+            this.label11.Text = fileCount1(dirPath3).ToString();
+            this.label11.ForeColor = setColor(dirPath3);
 
             this.FormBorderStyle = FormBorderStyle.None;
 
@@ -79,16 +80,14 @@ namespace WindowsFormsApplication1
         }
 
         public void watch3()
-        {
-        
+        {       
             FileSystemWatcher fsWatch = new FileSystemWatcher();
             fsWatch.Path = dirPath3;
             fsWatch.NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName;
             fsWatch.Filter = "*.*";
             fsWatch.Created += new FileSystemEventHandler((sender, e) => onCreated(sender, e, dirPath3, isbox3checked, dirName3));
             fsWatch.Deleted += new FileSystemEventHandler(onDeleted);
-            fsWatch.EnableRaisingEvents = true;
-       
+            fsWatch.EnableRaisingEvents = true;     
         }
 
         public void onCreated(object source, FileSystemEventArgs e, string dirPathin, bool ischecked, string dirNamein)
@@ -108,60 +107,87 @@ namespace WindowsFormsApplication1
                 notifyIcon1.ShowBalloonTip(1000);
             }
 
-            //this is where you add label text to keep it up to date on creation
+            //this is where you add label text to keep it up to date on file creation
             
 
             this.label2.Text = fileCount1(dirPath1).ToString();
             this.label2.ForeColor = setColor(dirPath1);
+
             this.label7.Text = fileCount1(dirPath2).ToString();
             this.label7.ForeColor = setColor(dirPath2);
+
+            this.label11.Text = fileCount1(dirPath3).ToString();
+            this.label11.ForeColor = setColor(dirPath3);
 
         }
 
         public void onDeleted(object source, FileSystemEventArgs e)
         {
-            //this is where you add label text to keep it up to date on deletion
+            //this is where you add label text to keep it up to date on deletion and change label color to reflect number of files
             this.label2.Text = fileCount1(dirPath1).ToString();
             this.label2.ForeColor = setColor(dirPath1);
+
             this.label7.Text = fileCount1(dirPath2).ToString();
             this.label7.ForeColor = setColor(dirPath2);
 
-           
+            this.label11.Text = fileCount1(dirPath3).ToString();
+            this.label11.ForeColor = setColor(dirPath3);
+
 
         }
 
-
+        //method to get the number of files in a directory, it does not count *.db files
+        //the method also changes a label text from plural to singular and back as needed
         public int fileCount1(string countPath)
         {
             var allfiles = Directory.GetFiles(countPath, "*", SearchOption.TopDirectoryOnly).Where(name => !name.EndsWith(".db"));
             int count1 = allfiles.Count();
+            if (count1 == 1)
+            {
+                if (countPath == dirPath1)
+                { this.label4.Text = "Current File"; }
+                if (countPath == dirPath2)
+                { this.label8.Text = "Current File"; }
+                if (countPath == dirPath3)
+                { this.label12.Text = "Current File"; }
+            }
+            else
+            {
+                if (countPath == dirPath1)
+                { this.label4.Text = "Current Files"; }
+                if (countPath == dirPath2)
+                { this.label8.Text = "Current Files"; }
+                if (countPath == dirPath3)
+                { this.label12.Text = "Current Files"; }
+            }
+
+
             return count1;
         }
 
+        //this is the method to both bring the program to the front and open an explorer window to the path that generated the alert
         private void notifyIcon1_BalloonTipClicked(object sender, EventArgs e)
         {
             this.Activate();           
             System.Diagnostics.Process.Start("explorer.exe", ballonDir);          
         }
 
+        //checkbox1 flipper
         private void checkBox1_CheckStateChanged(object sender, EventArgs e)
         {
             isbox1checked = !isbox1checked;
         }
 
+        //checkbox2 flipper
         private void checkBox2_CheckStateChanged(object sender, EventArgs e)
         {
             isbox2checked = !isbox2checked;
         }
 
+        //checkbox3 flipper
         private void checkBox3_CheckStateChanged(object sender, EventArgs e)
         {
             isbox3checked = !isbox3checked;
-        }
-
-        private void label5_Click(object sender, EventArgs e)
-        {
-            System.Diagnostics.Process.Start("explorer.exe", dirPath2);
         }
 
         private void label1_Click(object sender, EventArgs e)
@@ -169,29 +195,29 @@ namespace WindowsFormsApplication1
             System.Diagnostics.Process.Start("explorer.exe", dirPath1);
         }
 
+        private void label5_Click(object sender, EventArgs e)
+        {
+            System.Diagnostics.Process.Start("explorer.exe", dirPath2);
+        }
+
+        private void label9_Click(object sender, EventArgs e)
+        {
+            System.Diagnostics.Process.Start("explorer.exe", dirPath3);
+        }
+
         public Color setColor(string dirPathin)
         {
             if (fileCount1(dirPathin) == 0)
-            {
-                return Color.Green;
-            }
+            {return Color.Green;}
             else if (fileCount1(dirPathin) > 0 && fileCount1(dirPathin) < 5)
-            {
-                return Color.Orange;
-            }
+            {return Color.DarkOrange;}
             else if (fileCount1(dirPathin) >= 5)
-            {
-                return Color.Red;
-            }
+            {return Color.Red;}
             else
-            {
-                return Color.HotPink;
-            }
+            {return Color.HotPink;}
         }
 
-
-
-
+ 
     }
 
 
