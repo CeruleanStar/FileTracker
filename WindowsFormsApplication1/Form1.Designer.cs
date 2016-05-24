@@ -61,9 +61,9 @@
             this.label1.ForeColor = System.Drawing.Color.Lime;
             this.label1.Location = new System.Drawing.Point(0, 403);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(93, 13);
+            this.label1.Size = new System.Drawing.Size(70, 13);
             this.label1.TabIndex = 15;
-            this.label1.Text = "by Stephen Kasler";
+            this.label1.Text = "by SK/GJ/JB";
             // 
             // Form1
             // 
