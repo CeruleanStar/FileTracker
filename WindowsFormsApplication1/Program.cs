@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
 using System.Windows;
+using System.Collections;
+using System.ComponentModel;
+using System.Drawing;
 
 namespace WindowsFormsApplication1
 {
@@ -23,9 +26,19 @@ namespace WindowsFormsApplication1
             System.Windows.Forms.Application.Run(formMain);
         }
 
+
+
     }
 
+    public static class closeApp
+    {
+        public static void closeApplication()
+        {                 
+            System.Windows.Forms.Application.Exit();            
+            Environment.Exit(1);
+        }
 
+    }
 
 
     public static class FlashWindow

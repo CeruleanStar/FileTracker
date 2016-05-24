@@ -17,216 +17,305 @@ namespace WindowsFormsApplication1
 {
     public partial class Form1 : Form
     {
-        public const string dirPath1 = "\\\\tchospital\\files\\faxes\\registration";
-        public const string dirName1 = "Registration";
-        public const string dirPath2 = "\\\\tchospital\\files\\faxes\\registration\\to be scheduled";
-        public const string dirName2 = "To Be Scheduled";
-        public const string dirPath3 = "\\\\fs3\\it\\other";
-        public const string dirName3 = "IT\\other";
 
-        public bool isbox1checked = true;
-        public bool isbox2checked = true;
-        public bool isbox3checked = true;
-
-        public string ballonDir = dirPath1;
+        public bool[] isboxchecked; //this is a boolean array to keep track of whether checkboxes are checked or not
+        public string balloonDir = ""; //initialize this string as an empty string -- string is for the balloontip text when it displays a directory name
+        public int labelPosition = 0; //this is the dynamic label position variable to make sure labels don't overlap -- this is for the directory name labels
+        public int countLabelPosition = 20; //this is the count label position variable for dynamic count labels
+        public int chkBoxPosition = 0; //this is for the dynamic checkbox positions
+        public int cfLabelPosition = 20; //this is for the 'current file(s)' dynamic labels
 
         public Form1()
         {
             InitializeComponent();
 
+            //we have to give the balloontiptext some value, so this is a startup notification
             notifyIcon1.BalloonTipText = "File Watcher Started";
             notifyIcon1.ShowBalloonTip(100);
 
-            watch1();
-            watch2();
-            watch3();
+            //check if the config.txt file exists in the same directory with the program - if not, display a message and exit the program
+            if (!File.Exists("config.txt"))
+            {
+                System.Windows.Forms.MessageBox.Show("config.txt file does not exist -- please create a config.txt file within the same folder as the program");
+                closeApp.closeApplication();
+            }
+
+
+            string[] textFile = File.ReadAllLines("config.txt"); //declare a string array and put in each line from the config file      
+            string[] pathArray = new string[textFile.Length / 2]; //declare the string array that will hold the paths, and set it to half the elements of the array from the config file
+            string[] nameArray = new string[textFile.Length / 2]; //declare the string array that will hodl the path Name and set it to half the elements of the array from the config file
+            isboxchecked = new bool[textFile.Length / 2]; //set public boolean array to a length equal that of the path and name arrays
             
-            
+            //set the entire boolean array to true, as all of the checkboxes will start the program as 'checked' (true)
+            for (int i = 0; i < isboxchecked.Length; i++)
+            { isboxchecked[i] = true; }
+
+            //checks if the config file has the correct number of lines by checking if the string array is an even number
+            //if config file has an odd number of lines, then pop up a message and close the program
+            if (textFile.Length % 2 != 0)
+            {
+                System.Windows.Forms.MessageBox.Show("The config file is not an even number of lines -- The format for the config file is Directory name, new line, Directory Path -- check for white space at the end of file -- close the program and verify the config file is correct");
+                closeApp.closeApplication();
+            }
+
+            int j = 0; //counter variable used to separate the input string array into the pathArray and the nameArray
+            //the next 2 for loops will separate out the textFile array into 2 new arrays, one containing all of the directory paths, and the other the directory names
+            for (int i = 0; i < textFile.Length / 2; i++)
+            {
+                nameArray[i] = textFile[j];
+                j += 2;
+            }
+            j = 1;
+            for (int i = 0; i < textFile.Length / 2; i++)
+            {
+                pathArray[i] = textFile[j];
+                j = j + 2;
+            }
+
+            //this foreach loop will test every path in the pathArray to see if the path exists, if not it will close the program
+            foreach (string path in pathArray)
+            {
+                if (!Directory.Exists(path))
+                {
+                    System.Windows.Forms.MessageBox.Show("the path " + path + " does not appear to exist -- check the spelling of the path in the config file");
+                    closeApp.closeApplication();
+                }
+            }
+
+            /*
+            using (StreamWriter sw = new StreamWriter(@"C:\nhs\outfile.txt", false))
+            {
+                foreach (string line in textFile)
+                {
+                    sw.WriteLine(line);
+                }
+                sw.WriteLine("******next is the name array******");
+                foreach (string line in nameArray)
+                {
+                    sw.WriteLine(line);
+                }
+                sw.WriteLine("******next is the path array******");
+                foreach (string line in pathArray)
+                {
+                    sw.WriteLine(line);
+                }
+            }
+            */
+
+            //this for loop will try to create each file watcher object and if it has an exception when attempting to create one, it is likely due to the user not having permissions to view a directory in the config file
+            //if an exception happens when attempting to create a watcher object, it will display a message regarding folder permissions and close the program
+            for (int i = 0; i < pathArray.Length; i++)
+            {
+                try
+                { 
+                    watcher(pathArray[i], nameArray[i], i);
+                }
+                catch
+                {
+                    System.Windows.MessageBox.Show("error with " + pathArray[i] + " --- the current user likely does not have sufficient access to this location");
+                    closeApp.closeApplication();
+                }
+            }
         
-            this.label2.Text = fileCount1(dirPath1).ToString();
-            this.label2.ForeColor = setColor(dirPath1);
-            this.label7.Text = fileCount1(dirPath2).ToString();
-            this.label7.ForeColor = setColor(dirPath2);
-            this.label11.Text = fileCount1(dirPath3).ToString();
-            this.label11.ForeColor = setColor(dirPath3);
 
-            this.FormBorderStyle = FormBorderStyle.None;
+            this.FormBorderStyle = FormBorderStyle.None; //set the form to borderless
 
-            Rectangle workingArea = Screen.GetWorkingArea(this);
-            
+            //get the desktop size, set the height of the form to 3/4 desktop height and lock it to the bottom right of the screen
+            Rectangle workingArea = Screen.GetWorkingArea(this);            
             this.Height = workingArea.Height * 3 / 4;
             this.Location = new System.Drawing.Point(workingArea.Right - Size.Width, workingArea.Bottom - Size.Height);
-           
+
+            //create a label for the name of the program
+            Label name = new Label();
+            name.AutoSize = true;
+            name.Text = "File and Folder Watcher";
+            name.BackColor = Color.Black;
+            name.ForeColor = Color.LimeGreen;
+            name.Location = new System.Drawing.Point(0, 0);
+            this.Controls.Add(name);
+
+
         }
 
 
-        public void watch1()
+        //this is the filewatcher creation method, it requires paramaters of the directory path to watch, the name of that directory(can be anything you want)
+        //and the corresponding value of the isboxchecked global boolean array for the checkbox that will be created with the filewatcher object
+        public void watcher(string dirPath, string dirName, int chkbox)
         {
+            //create the countlabel for the filewatcher
+            Label countLabel = new Label();
+            countLabel.AutoSize = true;
+            countLabel.BackColor = Color.Black;    
+            countLabel.ForeColor = setColor(dirPath, countLabel); //the count label color changes based on number of files in the directory -- the filecount method requires a label object parameter which is why we pass one here
+            countLabel.Location = new System.Drawing.Point(38, countLabelPos()); //sets the location of the count label, the countLabelPos method will change the label position global variable every time this label is created so that labels don't overlap
+            countLabel.Text = fileCount(dirPath, countLabel).ToString();    //set the text of the count label to the number corresponding to the filecount of watched folder       
+            this.Controls.Add(countLabel);
+
+            //create the 'current file(s)' label in similar fashion to the countlabel
+            Label cfLabel = new Label();
+            cfLabel.AutoSize = true;
+            cfLabel.BackColor = System.Drawing.Color.Black;
+            cfLabel.ForeColor = System.Drawing.SystemColors.Control;
+            cfLabel.Location = new System.Drawing.Point(85, cfLabelPos());        
+            cfLabel.Text = "Current Files";
+            this.Controls.Add(cfLabel);
+
+            //the 2 above labels have to be created before the filewatcher, as some of the methods the filewatcher calls require the count label and the current files label to exist
+            //create the filewatcher object
             FileSystemWatcher fsWatch = new FileSystemWatcher();
-            fsWatch.Path = dirPath1;
+            fsWatch.Path = dirPath; //sets the path to incoming dirPath parameter
             fsWatch.NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName;
             fsWatch.Filter = "*.*";
-            fsWatch.Created += new FileSystemEventHandler((sender, e) => onCreated(sender, e, dirPath1, isbox1checked, dirName1));
-            fsWatch.Deleted += new FileSystemEventHandler(onDeleted);
-            fsWatch.EnableRaisingEvents = true;
+            fsWatch.Created += new FileSystemEventHandler((sender, e) => fileCreated(sender, e, dirPath, isboxchecked[chkbox], dirName, countLabel, cfLabel)); //the event handler for file creation -- it calls the fileCreated method which requires the sender, e, the directory path the file was created in, the corresponding isbheckbox array value, the directory name, the count label, and the current files label to be passed
+            fsWatch.Deleted += new FileSystemEventHandler((sender, e) => deleted(sender, e, countLabel, dirPath, cfLabel)); //the event handler for deleted files calls the deleted method, which requires the sender, e, the countlabel, the directory path, and the count label
+            //fsWatch.Changed += new FileSystemEventHandler((sender, e) => fileChanged(sender, e, dirPath));
+            fsWatch.EnableRaisingEvents = true; //allows the object ot raise events
+
+
+            //create the name label based on the dirname and create an on-click event handler to call the fsLabel_Click method
+            Label nameLabel = new Label();
+            nameLabel.AutoSize = true;
+            nameLabel.BackColor = Color.Black;
+            nameLabel.Font = new Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Underline, GraphicsUnit.Point, ((byte)(0)));
+            nameLabel.ForeColor = Color.CornflowerBlue;
+            nameLabel.Location = new System.Drawing.Point(35, labelPos());                       
+            nameLabel.Text = dirName;
+            nameLabel.Click += new EventHandler((sender, e) => this.fsLabel_Click(sender, e, dirPath));
+            this.Controls.Add(nameLabel);
+
+            //create the checkbox and an event handler for the checkoxes state change, which calls the checkBx_CheckStateChanged method
+            CheckBox checkBx = new CheckBox();
+            checkBx.AutoSize = true;
+            checkBx.Checked = true;
+            checkBx.CheckState = CheckState.Checked;
+            checkBx.Location = new System.Drawing.Point(14, checkBoxPos());
+            checkBx.Size = new System.Drawing.Size(15, 14);
+            checkBx.UseVisualStyleBackColor = true;
+            checkBx.CheckStateChanged += new EventHandler((sender, e) => this.checkBx_CheckStateChanged(sender, e, chkbox));
+            this.Controls.Add(checkBx);
+
         }
 
-        public void watch2()
+        //the fileCreated method, this is called when a file is created in a watched folder -- it requires the source, e, the directory path, the boolean value in the corresponding boolean array, the directory name, the count label, and the current file(s) label
+        public void fileCreated(object source, FileSystemEventArgs e, string dirPathin, bool ischecked, string dirNamein, Label ctLabel, Label cflabel)
         {
-            FileSystemWatcher fsWatch = new FileSystemWatcher();
-            fsWatch.Path = dirPath2;
-            fsWatch.NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName;
-            fsWatch.Filter = "*.*";
-            fsWatch.Created += new FileSystemEventHandler((sender, e) => onCreated(sender, e, dirPath2, isbox2checked, dirName2));
-            fsWatch.Deleted += new FileSystemEventHandler(onDeleted);
-            fsWatch.EnableRaisingEvents = true;
-        }
-
-        public void watch3()
-        {       
-            FileSystemWatcher fsWatch = new FileSystemWatcher();
-            fsWatch.Path = dirPath3;
-            fsWatch.NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName;
-            fsWatch.Filter = "*.*";
-            fsWatch.Created += new FileSystemEventHandler((sender, e) => onCreated(sender, e, dirPath3, isbox3checked, dirName3));
-            fsWatch.Deleted += new FileSystemEventHandler(onDeleted);
-            fsWatch.EnableRaisingEvents = true;     
-        }
-
-        public void onCreated(object source, FileSystemEventArgs e, string dirPathin, bool ischecked, string dirNamein)
-        {
+            //checks the boolean value in the corresponding element of the global boolean array
             if (ischecked)
             {
                 //this causes the taskbar icon to flash until the window is focused
                 FlashWindow.Flash(this);
-
-                ballonDir = dirPathin;
-
-
+                
+                //set the balloonDir global variable to the full path of the object, so that we can use this variable in the balloon's on click method
+                balloonDir = e.FullPath;
 
                 //this sets the ballootip title, text, and timer to popup when a file is created in any watched path
                 notifyIcon1.BalloonTipTitle = " !!!!!!!!!! ALERT !!!!!!!!!! ";
                 notifyIcon1.BalloonTipText = "\r A New File Was Created In \r \r " + dirNamein;
                 notifyIcon1.ShowBalloonTip(1000);
-
-    
             }
-
-            //this is where you add label text to keep it up to date on file creation
-            
-
-            this.label2.Text = fileCount1(dirPath1).ToString();
-            this.label2.ForeColor = setColor(dirPath1);
-
-            this.label7.Text = fileCount1(dirPath2).ToString();
-            this.label7.ForeColor = setColor(dirPath2);
-
-            this.label11.Text = fileCount1(dirPath3).ToString();
-            this.label11.ForeColor = setColor(dirPath3);
-
+            //call the updateDynLabels method, which will update the dynamic count label and current file(s) label -- it requires the count label, the directory path, and the current file(s) label as parameters
+            updateDynLabels(ctLabel, dirPathin, cflabel);
         }
 
-        public void onDeleted(object source, FileSystemEventArgs e)
+        //the deleted method, this is called when a file is deleted inside a watched folder -- it requires the sender, e, count label, directory path, and the current file(s) label as parameters and all it does is call the updateDynLabels method
+        //but is left as a separate method in order to add more options later (like logging)
+        public void deleted(object sender, EventArgs e, Label ctLabel, string dirPath, Label cflabel)
         {
-            //this is where you add label text to keep it up to date on deletion and change label color to reflect number of files
-            this.label2.Text = fileCount1(dirPath1).ToString();
-            this.label2.ForeColor = setColor(dirPath1);
-
-            this.label7.Text = fileCount1(dirPath2).ToString();
-            this.label7.ForeColor = setColor(dirPath2);
-
-            this.label11.Text = fileCount1(dirPath3).ToString();
-            this.label11.ForeColor = setColor(dirPath3);
-
-
+            updateDynLabels(ctLabel, dirPath, cflabel);
         }
 
-        //method to get the number of files in a directory, it does not count *.db files
-        //the method also changes a label text from plural to singular and back as needed
-        public int fileCount1(string countPath)
+        //this is the method that is called when a checkbox is checked or unchecked, it requires the sender, e, and the corresponding element number for the boolean array for the checkbox
+        //the method will flip theboolean value in the element of the array it is passed
+        private void checkBx_CheckStateChanged(object sender, EventArgs e, int chkboxnum)
+        {
+            isboxchecked[chkboxnum] = !isboxchecked[chkboxnum];
+        }
+
+        //this method will update the 2 labels that require dynamic updates - count label and current file(s) label
+        public void updateDynLabels(Label localLabel, string dirPath, Label cflabel)
+        {
+            //first we set the count label text to the string value of the filecount of the directory -- filecount method requires the current file(s) label, which is why we have passed it along
+            localLabel.Text = fileCount(dirPath, cflabel).ToString();
+            //here we change the color of the count label based on the setColor method, the setColor method will call filecount, so we need the current file(s) label passed along
+            localLabel.ForeColor = setColor(dirPath, cflabel);
+        }
+
+        //this is the path Name label on click method, it will open windows file explorer to the path associated with the name
+        private void fsLabel_Click(object sender, EventArgs e, string dirPath)
+        {
+            System.Diagnostics.Process.Start("explorer.exe", dirPath);
+        }
+
+        //this method will update the name/link label position variable
+        public int labelPos()
+        {
+            labelPosition += 40;
+            return labelPosition;
+        }
+
+        //this method will update the count label position variable
+        public int countLabelPos()
+        {
+            countLabelPosition += 40;
+            return countLabelPosition;
+        }
+
+        //this method will update the checkbox position variable
+        public int checkBoxPos()
+        {
+            chkBoxPosition += 40;
+            return chkBoxPosition;
+        }
+
+        //this method will update the current file(s) position variable
+        public int cfLabelPos()
+        {
+            cfLabelPosition += 40;
+            return cfLabelPosition;
+        }
+
+        //fileCount method will get the file count of the path, minus any *.db files -- it will also update the current file(s) lable to display singular or plural
+        public int fileCount(string countPath, Label cfLabel)
         {
             var allfiles = Directory.GetFiles(countPath, "*", SearchOption.TopDirectoryOnly).Where(name => !name.EndsWith(".db"));
-            int count1 = allfiles.Count();
-            if (count1 == 1)
+            int count = allfiles.Count();
+            if (count == 1)
             {
-                if (countPath == dirPath1)
-                { this.label4.Text = "Current File"; }
-                if (countPath == dirPath2)
-                { this.label8.Text = "Current File"; }
-                if (countPath == dirPath3)
-                { this.label12.Text = "Current File"; }
+                cfLabel.Text = "Current File"; 
             }
             else
-            {
-                if (countPath == dirPath1)
-                { this.label4.Text = "Current Files"; }
-                if (countPath == dirPath2)
-                { this.label8.Text = "Current Files"; }
-                if (countPath == dirPath3)
-                { this.label12.Text = "Current Files"; }
+            {               
+                cfLabel.Text = "Current Files";               
             }
-
-
-            return count1;
+            return count;
         }
+
+
+
+
+
+
+
 
         //this is the method to both bring the program to the front and open an explorer window to the path that generated the alert
         private void notifyIcon1_BalloonTipClicked(object sender, EventArgs e)
         {
             this.Activate();           
-            System.Diagnostics.Process.Start("explorer.exe", ballonDir);          
+            System.Diagnostics.Process.Start(balloonDir);          
         }
 
-        //checkbox1 flipper
-        private void checkBox1_CheckStateChanged(object sender, EventArgs e)
+ 
+        //this method  will set the color of the count label based on the number of files in the path
+        public Color setColor(string dirPathin, Label lbl)
         {
-            isbox1checked = !isbox1checked;
-        }
-
-        //checkbox2 flipper
-        private void checkBox2_CheckStateChanged(object sender, EventArgs e)
-        {
-            isbox2checked = !isbox2checked;
-        }
-
-        //checkbox3 flipper
-        private void checkBox3_CheckStateChanged(object sender, EventArgs e)
-        {
-            isbox3checked = !isbox3checked;
-        }
-
-        private void label1_Click(object sender, EventArgs e)
-        {
-            System.Diagnostics.Process.Start("explorer.exe", dirPath1);
-        }
-
-        private void label5_Click(object sender, EventArgs e)
-        {
-            System.Diagnostics.Process.Start("explorer.exe", dirPath2);
-        }
-
-        private void label9_Click(object sender, EventArgs e)
-        {
-            System.Diagnostics.Process.Start("explorer.exe", dirPath3);
-        }
-
-        public Color setColor(string dirPathin)
-        {
-            if (fileCount1(dirPathin) == 0)
+            if (fileCount(dirPathin, lbl) == 0)
             {return Color.Green;}
-            else if (fileCount1(dirPathin) > 0 && fileCount1(dirPathin) < 5)
+            else if (fileCount(dirPathin, lbl) > 0 && fileCount(dirPathin, lbl) < 5)
             {return Color.DarkOrange;}
-            else if (fileCount1(dirPathin) >= 5)
+            else if (fileCount(dirPathin, lbl) >= 5)
             {return Color.Red;}
             else
             {return Color.HotPink;}
         }
-
- 
     }
-
-
-
-
-
 }
