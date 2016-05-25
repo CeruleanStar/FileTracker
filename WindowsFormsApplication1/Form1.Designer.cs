@@ -33,6 +33,7 @@
             this.notifyIcon1 = new System.Windows.Forms.NotifyIcon(this.components);
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.label1 = new System.Windows.Forms.Label();
+            this.addPathBtn = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -65,6 +66,16 @@
             this.label1.TabIndex = 15;
             this.label1.Text = "by SK/GJ/JB";
             // 
+            // addPathBtn
+            // 
+            this.addPathBtn.Location = new System.Drawing.Point(69, 13);
+            this.addPathBtn.Name = "addPathBtn";
+            this.addPathBtn.Size = new System.Drawing.Size(141, 23);
+            this.addPathBtn.TabIndex = 16;
+            this.addPathBtn.Text = "Add a New Path to Watch";
+            this.addPathBtn.UseVisualStyleBackColor = true;
+            this.addPathBtn.Click += new System.EventHandler(this.addPathBtn_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -72,6 +83,7 @@
             this.AutoScroll = true;
             this.BackColor = System.Drawing.Color.Black;
             this.ClientSize = new System.Drawing.Size(222, 416);
+            this.Controls.Add(this.addPathBtn);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.pictureBox1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
@@ -90,6 +102,7 @@
         private System.Windows.Forms.NotifyIcon notifyIcon1;
         private System.Windows.Forms.PictureBox pictureBox1;
         private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Button addPathBtn;
     }
 }
 
