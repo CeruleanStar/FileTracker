@@ -25,9 +25,6 @@ namespace WindowsFormsApplication1
             Form1 formMain = new Form1();
             System.Windows.Forms.Application.Run(formMain);
         }
-
-
-
     }
 
     public static class closeApp

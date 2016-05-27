@@ -24,12 +24,13 @@ namespace WindowsFormsApplication1
         public int countLabelPosition = 40; //this is the count label position variable for dynamic count labels
         public int chkBoxPosition = 40; //this is for the dynamic checkbox positions
         public int cfLabelPosition = 40; //this is for the 'current file(s)' dynamic labels
-        public int watcherIterator = 40;
+        public int watcherIterator = 0;
         public int posMultiplier = 1;
         //public string[] pathArray = new string[20]; //declare the string array that will hold the paths, and set it to half the elements of the array from the config file
         //public string[] nameArray = new string[20]; //declare the string array that will hodl the path Name and set it to half the elements of the array from the config file
-        
-            
+        public fileWatcher[] fileWatcherArray = new fileWatcher[20];
+        public FileSystemEventHandler[] fileEventCreatedArray = new FileSystemEventHandler[20];
+        public FileSystemEventHandler[] fileEventDeletedArray = new FileSystemEventHandler[20];
 
         public Form1()
         {
@@ -251,14 +252,14 @@ namespace WindowsFormsApplication1
                 notifyIcon1.ShowBalloonTip(1000);
             }
             //call the updateDynLabels method, which will update the dynamic count label and current file(s) label -- it requires the count label, the directory path, and the current file(s) label as parameters
-            updateDynLabels(ctLabel, dirPathin, cflabel);
+            //updateDynLabels(ctLabel, dirPathin, cflabel);
         }
 
         //the deleted method, this is called when a file is deleted inside a watched folder -- it requires the sender, e, count label, directory path, and the current file(s) label as parameters and all it does is call the updateDynLabels method
         //but is left as a separate method in order to add more options later (like logging)
         public void deleted(object sender, EventArgs e, Label ctLabel, string dirPath, Label cflabel)
         {
-            updateDynLabels(ctLabel, dirPath, cflabel);
+            //updateDynLabels(ctLabel, dirPath, cflabel);
         }
 
         //this method will update the 2 labels that require dynamic updates - count label and current file(s) label
@@ -361,18 +362,156 @@ namespace WindowsFormsApplication1
             //pop up window to request Name and Path
             Prompt prompt = new Prompt();
             prompt.ShowDialog();
-
-
-            fileWatcher[] fileWatcherArray = new fileWatcher[20];
-            fileWatcherArray[watcherIterator] = new fileWatcher(prompt.nameIn, prompt.pathIn);
-            this.Controls.Add(fileWatcherArray[watcherIterator].nameLabel);
-            watcherIterator++;
-            /*
-            watcher(prompt.pathIn, prompt.nameIn, watcherIterator);
-            watcherIterator++;
-            posMultiplier++;
-            */
+         
+            fileWatcherArray[watcherIterator] = new fileWatcher(prompt.nameIn, prompt.pathIn, this);
             
+            fileWatchConstruct(watcherIterator);
+            watcherIterator++;
+         
+        }
+
+        private void fileWatchConstruct(int i)
+        {
+            //set name label values
+            fileWatcherArray[i].nameLabel.AutoSize = true;
+            fileWatcherArray[i].nameLabel.BackColor = Color.Black;
+            fileWatcherArray[i].nameLabel.Font = new Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Underline, GraphicsUnit.Point, ((byte)(0)));
+            fileWatcherArray[i].nameLabel.ForeColor = Color.CornflowerBlue;
+            fileWatcherArray[i].nameLabel.Location = new System.Drawing.Point(35, 40 + (i * 40));
+            this.Controls.Add(fileWatcherArray[i].nameLabel);
+
+            //set count label values
+            fileWatcherArray[i].countLabel.AutoSize = true;
+            fileWatcherArray[i].countLabel.BackColor = Color.Black;
+            fileWatcherArray[i].countLabel.Font = new Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Underline, GraphicsUnit.Point, ((byte)(0)));
+            //fileWatcherArray[i].countLabel.ForeColor = Color.CornflowerBlue; //--- color for this label should be set in the class with a file created/deleted event handler
+            fileWatcherArray[i].countLabel.Location = new System.Drawing.Point(38, 60 + (i * 40));
+            //fileWatcherArray[i].countLabel.Text = "ctlbl";
+            fileWatcherArray[i].updateCountLabel();
+            this.Controls.Add(fileWatcherArray[i].countLabel);
+
+            //set cf label values
+            fileWatcherArray[i].cfLabel.AutoSize = true;
+            fileWatcherArray[i].cfLabel.BackColor = Color.Black;
+            fileWatcherArray[i].cfLabel.Font = new Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Underline, GraphicsUnit.Point, ((byte)(0)));
+            fileWatcherArray[i].cfLabel.ForeColor = Color.White;
+            //fileWatcherArray[i].cfLabel.Text = "cf label";
+
+            Array.IndexOf(fileWatcherArray, this);
+
+            fileWatcherArray[i].cfLabel.Location = new System.Drawing.Point(105, 60 + (i * 40));
+            this.Controls.Add(fileWatcherArray[i].cfLabel);
+
+            //set checkbox values
+
+            //set delete button values
+            fileWatcherArray[i].delButton.Location = new System.Drawing.Point(145, 40 +(i*40));
+            fileWatcherArray[i].delButton.Size = new System.Drawing.Size(22, 21);
+            fileWatcherArray[i].delButton.Text = "X";
+            fileWatcherArray[i].delButton.UseVisualStyleBackColor = true;
+            this.Controls.Add(fileWatcherArray[i].delButton);
+            fileWatcherArray[i].delButton.Click += new EventHandler((sender, e) => onDelClick(fileWatcherArray[i], e));
+
+            //fileWatcherArray[i].fsWatcher.Created += new FileSystemEventHandler((sender, e) => onFileCreated(sender, e, fileWatcherArray[i].dirPath, fileWatcherArray[i].watchBox.Checked, fileWatcherArray[i].dirName));
+            //fileWatcherArray[i].fsWatcher.Deleted += new FileSystemEventHandler((sender, e) => onFileDeleted(sender, e)); 
+            //fileWatcherArray[i].Changed += new FileSystemEventHandler((sender, e) => fileChanged(sender, e, dirPath));
+            //fileWatcherArray[i].fsWatcher.EnableRaisingEvents = true;
+
+            
+           
+        }
+
+        public void flasher()
+        { this.Invoke(new Action(() => FlashWindow.Flash(this))); }
+
+
+        public void onFileCreated(object source, FileSystemEventArgs e, string dirPathin, bool ischecked, string dirNamein)
+        {
+           if (ischecked)
+            {
+                flasher();
+
+                balloonDir = e.FullPath;
+
+                notifyIcon1.BalloonTipTitle = " !!!!!!!!!! ALERT !!!!!!!!!! ";
+                notifyIcon1.BalloonTipText = "\r A New File Was Created In \r \r " + dirNamein;
+                notifyIcon1.ShowBalloonTip(1000);
+            }
+
+            updateLabels();
+        }
+
+        public void onFileDeleted(object source, FileSystemEventArgs e)
+        {
+            updateLabels();
+        }
+
+        private void updateLabels()
+        {
+            foreach (fileWatcher fWatch in fileWatcherArray)
+            {
+                if (fWatch != null)
+                {
+                    fWatch.nameLabel.Location = new System.Drawing.Point(35, 40 + (getArrayIndexValue(fWatch) * 40));
+                    fWatch.countLabel.Location = new System.Drawing.Point(38, 60 + (getArrayIndexValue(fWatch) * 40));
+                    fWatch.cfLabel.Location = new System.Drawing.Point(105, 60 + (getArrayIndexValue(fWatch) * 40));
+                    fWatch.delButton.Location = new System.Drawing.Point(145, 40 + (getArrayIndexValue(fWatch) * 40));
+
+                    this.Invoke(new Action(() => fWatch.updateCountLabel()));
+                    this.Invoke(new Action(() => fWatch.updateCFLabel()));
+                }
+
+                
+            }
+
+        }
+
+        private void updateArray(int i)
+        {
+            
+            //fileWatcherArray[i].Dispose();
+            for (int j = 0; j < 20; j++)
+                {
+                    if (j >= i && j != 19)
+                    {                   
+                        fileWatcherArray[j] = fileWatcherArray[j + 1];                        
+                    }
+                    if (j == 19)
+                    {
+                        fileWatcherArray[j] = null;
+                    }
+                }
+                for (int k = 0; k < 20; k++)
+                {
+                    if (fileWatcherArray[k] != null)
+                    {
+                        //fileWatcherArray[i].delButton.Click += new EventHandler((sender, e) => onDelClick(fileWatcherArray[i], e));
+                    }
+                }
+            
+            updateLabels();
+            
+        }
+
+        private void onDelClick(fileWatcher source, EventArgs e)
+        {
+            watcherIterator--;
+            updateArray((getArrayIndexValue(source)));
+        }
+
+        private int getArrayIndexValue(fileWatcher source)
+        {
+            return Array.IndexOf(fileWatcherArray, source);
+        }
+
+        private void fileWatchDispose(int i)
+        {
+            //delete the filewatcher object
+
+            //fix the filewatcher array
+
+            //update every object in the array to the new position in the array
+
         }
     }
 
@@ -382,32 +521,74 @@ namespace WindowsFormsApplication1
         public Label countLabel = new Label();
         public Label cfLabel = new Label();
         public CheckBox watchBox = new CheckBox();
-        public Button deleteBtn = new Button();
         public FileSystemWatcher fsWatcher = new FileSystemWatcher();
+        public Button delButton = new Button();
+        public Form1 mainForm;
 
         public string dirName;
         public string dirPath;
 
-        public fileWatcher(string dirNameIn, string dirPathIn)
+        public fileWatcher(string dirNameIn, string dirPathIn, Form1 mainFormIn)
         {
             dirName = dirNameIn;
             dirPath = dirPathIn;
+            mainForm = mainFormIn;
 
+            fsWatcher.Path = dirPath;
             nameLabel.Text = dirName;
 
-            
-            nameLabel.AutoSize = true;
-            nameLabel.BackColor = Color.Black;
-            nameLabel.Font = new Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Underline, GraphicsUnit.Point, ((byte)(0)));
-            nameLabel.ForeColor = Color.CornflowerBlue;
-            nameLabel.Location = new System.Drawing.Point(35, 40);
+            delButton.Click += new EventHandler((sender, e) => onDelClick(sender, e));
+            nameLabel.Click += new EventHandler((sender, e) => fsLabel_Click(sender, e, dirPath));
+            updateCFLabel();
+            fsWatcher.Created += new FileSystemEventHandler((sender, e) => onFileCreated(sender, e));
+            fsWatcher.Deleted += new FileSystemEventHandler((sender, e) => onFileDeleted(sender, e));
+            fsWatcher.EnableRaisingEvents = true;
 
-            //nameLabel.Click += new EventHandler((sender, e) => this.fsLabel_Click(sender, e, dirPath));
+            watchBox.Checked = true;
+        }
+
+        //event handlers for the filewatcher object
+        //on-click of name label to open explorer to the path
+        private void fsLabel_Click(object sender, EventArgs e, string dirPath)
+        {
+            System.Diagnostics.Process.Start("explorer.exe", dirPath);
+        }
+
+        //on-click of delBox to dispose the object
+        public void onDelClick(object source, EventArgs e)
+        {
+            this.Dispose();
+        }
+
+        //on-file created in the path
+        public void onFileCreated(object source, FileSystemEventArgs e)
+        {
+            mainForm.onFileCreated(source, e, dirPath, this.watchBox.Checked, dirName);
+        }
+
+        //on-file deleted in the path
+        public void onFileDeleted(object source, EventArgs e)
+        {
 
         }
 
+        //update the CF label for plurality
+        public void updateCFLabel()
+        {
+            if(fileCount(dirPath) == 1)
+            { cfLabel.Text = "Current File"; }
+            else
+            { cfLabel.Text = "Current Files"; }
+        }
 
+        //update the count label text
+        public void updateCountLabel()
+        {
+            countLabel.ForeColor = setColor(dirPath);
+            countLabel.Text = fileCount(dirPath).ToString();
+        }
 
+        //return the file count for the path, sans *.db files
         public int fileCount(string dirPathin)
         {
             var allfiles = Directory.GetFiles(dirPathin, "*", SearchOption.TopDirectoryOnly).Where(name => !name.EndsWith(".db"));
@@ -415,6 +596,7 @@ namespace WindowsFormsApplication1
             return count;
         }
 
+        //return a color based on file count of the path
         public Color setColor(string dirPathin)
         {
             if (fileCount(dirPathin) == 0)
@@ -424,10 +606,18 @@ namespace WindowsFormsApplication1
             else if (fileCount(dirPathin) >= 5)
             { return Color.Red; }
             else
-            { return Color.HotPink; }
+            { return Color.HotPink; }            
         }
 
-
+        public void Dispose()
+        {
+            nameLabel.Dispose();
+            countLabel.Dispose();
+            cfLabel.Dispose();
+            fsWatcher.Dispose();
+            watchBox.Dispose();
+            delButton.Dispose();
+        }
 
     }
 
@@ -449,11 +639,12 @@ namespace WindowsFormsApplication1
             Label textLabel = new Label() { Left = 50, Top = 20, Text = "Enter Directory Name" };
             textLabel.AutoSize = true;
             TextBox textBox = new TextBox() { Left = 50, Top = 50, Width = 400 };
+            Label pathLabel = new Label() { Left = 50, Top = 80, Text = "Enter Directory Path" };
+            TextBox dirBox = new TextBox() { Left = 50, Top = 110, Width = 400 };
             Button confirmation = new Button() { Text = "Ok", Left = 350, Width = 100, Top = 170, DialogResult = DialogResult.OK };
             confirmation.Click += (sender, e) => { prompt.Close(); };
 
-            Label pathLabel = new Label() { Left = 50, Top = 80, Text = "Enter Directory Path" };
-            TextBox dirBox = new TextBox() { Left = 50, Top = 110, Width = 400 };
+
 
             prompt.Controls.Add(textBox);
             prompt.Controls.Add(confirmation);
