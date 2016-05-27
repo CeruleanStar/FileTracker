@@ -20,7 +20,7 @@ namespace WindowsFormsApplication1
 
         public string balloonDir = ""; //initialize this string as an empty string -- string is for the balloontip text when it displays a directory name
         public int watcherIterator = 0;
-        public fileWatcher[] fileWatcherArray = new fileWatcher[20];
+        public fileWatcher[] fileWatcherArray = new fileWatcher[100];
 
         public Form1()
         {
@@ -82,8 +82,7 @@ namespace WindowsFormsApplication1
             fileWatcherArray[watcherIterator] = new fileWatcher(prompt.nameIn, prompt.pathIn, this);
             
             fileWatchConstruct(watcherIterator);
-            watcherIterator++;
-         
+            watcherIterator++;        
         }
 
         private void fileWatchConstruct(int i)
@@ -109,9 +108,6 @@ namespace WindowsFormsApplication1
             fileWatcherArray[i].cfLabel.BackColor = Color.Black;
             fileWatcherArray[i].cfLabel.Font = new Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Underline, GraphicsUnit.Point, ((byte)(0)));
             fileWatcherArray[i].cfLabel.ForeColor = Color.White;
- 
-            //Array.IndexOf(fileWatcherArray, this);
-
             fileWatcherArray[i].cfLabel.Location = new System.Drawing.Point(105, 60 + (i * 40));
             this.Controls.Add(fileWatcherArray[i].cfLabel);
 
@@ -129,7 +125,7 @@ namespace WindowsFormsApplication1
             fileWatcherArray[i].delButton.ForeColor = Color.Red;
             fileWatcherArray[i].delButton.Location = new System.Drawing.Point(145, 40 +(i*40));
             fileWatcherArray[i].delButton.Size = new System.Drawing.Size(18, 21);
-            fileWatcherArray[i].delButton.Font = new Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            fileWatcherArray[i].delButton.Font = new Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, GraphicsUnit.Point, ((byte)(0)));
             fileWatcherArray[i].delButton.Text = "X";
             fileWatcherArray[i].delButton.UseVisualStyleBackColor = true;
             this.Controls.Add(fileWatcherArray[i].delButton);
@@ -153,14 +149,11 @@ namespace WindowsFormsApplication1
                 notifyIcon1.BalloonTipText = "\r A New File Was Created In \r \r " + dirNamein;
                 notifyIcon1.ShowBalloonTip(1000);
             }
-
             updateLabels();
         }
 
         public void onFileDeleted()
-        {
-            updateLabels();
-        }
+        { updateLabels(); }
 
         private void updateLabels()
         {
@@ -184,11 +177,11 @@ namespace WindowsFormsApplication1
         {            
             for (int j = 0; j < 20; j++)
             {
-                if (j >= i && j != 19)
+                if (j >= i && j != 99)
                 {
                     fileWatcherArray[j] = fileWatcherArray[j + 1];
                 }
-                if (j == 19)
+                if (j == 99)
                 {
                     fileWatcherArray[j] = null;
                 }
@@ -203,9 +196,7 @@ namespace WindowsFormsApplication1
         }
 
         private int getArrayIndexValue(fileWatcher source)
-        {
-            return Array.IndexOf(fileWatcherArray, source);
-        } 
+        { return Array.IndexOf(fileWatcherArray, source); } 
     }
 
     //********* New Class fileWatcher
@@ -218,7 +209,6 @@ namespace WindowsFormsApplication1
         public FileSystemWatcher fsWatcher = new FileSystemWatcher();
         public Button delButton = new Button();
         public Form1 mainForm;
-
         public string dirName;
         public string dirPath;
 
@@ -244,27 +234,19 @@ namespace WindowsFormsApplication1
         //event handlers for the filewatcher object
         //on-click of name label to open explorer to the path
         private void fsLabel_Click(object sender, EventArgs e, string dirPath)
-        {
-            System.Diagnostics.Process.Start("explorer.exe", dirPath);
-        }
+        { System.Diagnostics.Process.Start("explorer.exe", dirPath); }
 
         //on-click of delBox to dispose the object
         public void onDelClick(object source, EventArgs e)
-        {
-            this.Dispose();
-        }
+        { this.Dispose(); }
 
         //on-file created in the path
         public void onFileCreated(object source, FileSystemEventArgs e)
-        {
-            mainForm.onFileCreated(source, e, dirPath, this.watchBox.Checked, dirName);
-        }
+        { mainForm.onFileCreated(source, e, dirPath, this.watchBox.Checked, dirName); }
 
         //on-file deleted in the path
         public void onFileDeleted(object source, EventArgs e)
-        {
-            mainForm.onFileDeleted();
-        }
+        { mainForm.onFileDeleted(); }
 
         //update the CF label for plurality
         public void updateCFLabel()
@@ -312,7 +294,6 @@ namespace WindowsFormsApplication1
             watchBox.Dispose();
             delButton.Dispose();
         }
-
     }
 
     //****** New Class Prompt
@@ -354,7 +335,5 @@ namespace WindowsFormsApplication1
                 pathIn = dirBox.Text;              
             }
         }
-
     }
-
 }
